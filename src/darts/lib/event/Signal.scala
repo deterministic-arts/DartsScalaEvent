@@ -14,26 +14,26 @@ object Signal {
 }
 
 
-private sealed trait ListenerRef[-E] {
+private[event] sealed trait ListenerRef[-E] {
     def isAlive: Boolean
     def invoke(event: E): Unit
 }
 
-private final object NullRef 
+private[event] final object NullRef 
 extends ListenerRef[Any] {
     def isAlive: Boolean = false
     def invoke(event: Any): Unit = ()
     override def toString: String = "ListenerRef(<cancelled>)"
 }
 
-private final class StrongRef[E] (val listener: E=>Any) 
+private[event] final class StrongRef[E] (val listener: E=>Any) 
 extends ListenerRef[E] {
     def isAlive: Boolean = true 
     def invoke(event: E): Unit = listener(event)
     override def toString: String = "ListenerRef(" + listener + ")"
 }
 
-private final class WeakRef[E] (listener: E=>Any) 
+private[event] final class WeakRef[E] (listener: E=>Any) 
 extends WeakReference[E=>Any] (listener) with ListenerRef[E] {
     def isAlive: Boolean = null != get 
     def invoke(event: E): Unit = get match {
