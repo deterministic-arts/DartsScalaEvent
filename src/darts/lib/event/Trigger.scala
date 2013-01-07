@@ -6,68 +6,6 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
 import java.util.concurrent.atomic.AtomicReference
 import java.lang.ref.WeakReference
 
-trait Once[E] {
-    
-    /**
-     * Type of the event published by this instance
-     */
-    
-    type Event = E
-    
-    /**
-     * Type of listener function for this publisher
-     */
-    
-    type Listener = Function1[E,Any]
-    
-    def value: Option[E]
-
-    /**
-     * Adds a listener to this publisher. Depending on the
-     * value of `retention`, the listener will be tracked
-     * using a strong or a weak reference. The function
-     * returns a "subscription" object, which can later be
-     * used to undo the subscription, if notifications
-     * of events are no longer desired.
-     * 
-     * If this trigger has already been called, then the 
-     * listener is not registered.
-     * 
-     * This method returns either a subscription handle, if
-     * the callback has been registered, or the value, with
-     * which this trigger has been fired. Note, that if this
-     * method returns a subscription, then the listener is
-     * guaranteed to be called if the trigger is fired, even
-     * if that happens on a different thread running concurrently
-     * with the thread registering the listener.
-     * 
-     * @param listener	listener function to register
-     * @param retention	reference retention policy
-     * 
-     * @returns	a "handle" representing the subscription
-     * 			made; the handle may be used later to unregister
-     * 			the listener from this publisher
-     */
-    
-    def subscribe(listener: Listener, retention: Retention): Either[E,Subscription]
-
-    /**
-     * Adds a listener to this publisher. The listener will
-     * always be tracked using a strong reference. The 
-     * function returns a "subscription" object, which can 
-     * later be used to undo the subscription, if notifications
-     * of events are no longer desired.
-     * 
-     * @param listener	listener function to register
-     * 
-     * @returns	a "handle" representing the subscription
-     * 			made; the handle may be used later to unregister
-     * 			the listener from this publisher
-     */
-    
-    def subscribe(listener: Listener): Either[E,Subscription] = subscribe(listener, Retention.Strong)
-}
-
 trait Trigger[E] extends Once[E] with Dispatcher[E]
 
 object Trigger {
@@ -115,7 +53,12 @@ extends Trigger[E] {
         case State.Signalled(value) => Some(value)
         case _ => None
     }
-        
+    
+    /**
+     * Fire this trigger. If it has already been fired, this
+     * method raises an `IllegalStateException`.
+     */
+    
     def apply(event: E) {
         @tailrec def loop(list: List[Entry]) {
             if (!list.isEmpty) {
