@@ -33,6 +33,14 @@ trait Once[E] {
      * If this trigger has already been called, then the 
      * listener is not registered.
      * 
+     * This method returns either a subscription handle, if
+     * the callback has been registered, or the value, with
+     * which this trigger has been fired. Note, that if this
+     * method returns a subscription, then the listener is
+     * guaranteed to be called if the trigger is fired, even
+     * if that happens on a different thread running concurrently
+     * with the thread registering the listener.
+     * 
      * @param listener	listener function to register
      * @param retention	reference retention policy
      * 
