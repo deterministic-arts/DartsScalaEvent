@@ -64,7 +64,7 @@ extends Trigger[E] {
             if (!list.isEmpty) {
                 try list.head.invoke(event)
                 catch {
-                    case thr => handleError(thr, event, list.head)
+                    case thr: Exception => handleError(thr, event, list.head)
                 }
                 loop(list.tail)
             }
